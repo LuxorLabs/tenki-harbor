@@ -56,7 +56,7 @@ Pass with `--ek key=value` or under `environment.kwargs` in a job config.
 | Option | Default | |
 |---|---|---|
 | `max_duration_sec` | `7200` | Hard VM lifetime, so a crashed run can't leak a VM. Capped by the workspace limit. |
-| `disk_size_gb` | task storage + 10 GB, min 20 | VM disk, which also holds the image layers. |
+| `disk_size_gb` | task storage + 30 GB, min 50 | VM disk, which also holds the image layers. |
 | `image` / `snapshot_id` | Tenki base image | Start from a Tenki image or snapshot, e.g. one with Docker preinstalled. |
 | `base_url` | `TENKI_API_ENDPOINT` or `https://api.tenki.cloud` | Tenki API endpoint. |
 

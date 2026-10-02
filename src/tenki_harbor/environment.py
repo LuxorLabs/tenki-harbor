@@ -48,9 +48,10 @@ TENKI_MIN_DISK_GB = 5
 TENKI_MAX_DISK_GB = 100
 DEFAULT_CPUS = 2
 DEFAULT_MEMORY_MB = 4096
-DEFAULT_DISK_GB = 20
-# Room for the image layers on top of the task's own storage request.
-IMAGE_DISK_HEADROOM_GB = 10
+# Docker keeps both the compressed and the extracted layers, so a large
+# image (Terminal-Bench's CUDA ones are ~9 GB compressed) needs ~3x its size.
+DEFAULT_DISK_GB = 50
+IMAGE_DISK_HEADROOM_GB = 30
 
 DEFAULT_MAX_DURATION_SEC = 2 * 3600
 READY_TIMEOUT_SEC = 300
