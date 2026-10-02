@@ -5,13 +5,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 
-from tenki import AsyncClient, AsyncSandbox
+from tenki import AsyncClient, AsyncSandbox, SandboxError
 
 from tenki_harbor.environment import DOCKER_BOOTSTRAP, SNAPSHOT_ENV_VAR
 
 HARBOR_TAG = "harbor"
 # Restores can grow a snapshot's CPU, memory and disk but not shrink them, so
-# build the base at the smallest size a trial could ask for.
+# keep the base small; a trial that asks for less than this gets the base size.
 BASE_CPUS = 1
 BASE_MEMORY_MB = 1024
 BASE_DISK_GB = 20
@@ -52,24 +52,30 @@ async def _cleanup() -> int:
 
 
 async def _prepare(name: str) -> int:
+    # Tagged like trial VMs so `sessions` and `cleanup` also see a leaked prepare VM.
     sandbox = await AsyncSandbox.create(
         name=name,
         cpu_cores=BASE_CPUS,
         memory_mb=BASE_MEMORY_MB,
         disk_size_gb=BASE_DISK_GB,
         max_duration=1800,
-        tags=["harbor-prepare"],
+        tags=[HARBOR_TAG],
+        wait=False,
     )
     try:
+        await sandbox.wait_ready(timeout=300)
         result = await sandbox.exec("bash", "-c", DOCKER_BOOTSTRAP, timeout=900, privileged=True)
-        if result.exit_code != 0:
+        if result.exit_code != 0 or result.timed_out:
             print(f"Docker install failed:\n{result.stdout_text}{result.stderr_text}")
             return 1
         snapshot = await sandbox.snapshot(name=name)
+        # Wait until the snapshot restores on any host, not just the one it was taken on.
+        snapshot = await AsyncClient().snapshots.wait_durable(snapshot.id, timeout=900)
+    except (SandboxError, TimeoutError) as exc:
+        print(f"Preparing the snapshot failed: {exc}")
+        return 1
     finally:
         await sandbox.close_if_open()
-    # Wait until the snapshot can be restored on any host, not just the one it was taken on.
-    snapshot = await AsyncClient().snapshots.wait_durable(snapshot.id, timeout=900)
     print(f"Snapshot {snapshot.id} is ready. Use it with:\n")
     print(f"  export {SNAPSHOT_ENV_VAR}={snapshot.id}")
     return 0
