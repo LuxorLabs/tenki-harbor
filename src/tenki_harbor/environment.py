@@ -37,6 +37,7 @@ from harbor.models.task.config import NetworkMode, NetworkPolicy
 from tenki import AsyncSandbox, CommandTimeoutError
 
 CONTAINER = "main"
+SNAPSHOT_ENV_VAR = "TENKI_HARBOR_SNAPSHOT_ID"
 HARBOR_DIR = "/home/tenki/.harbor"
 XFER_DIR = f"{HARBOR_DIR}/xfer"
 BUILD_DIR = f"{HARBOR_DIR}/build"
@@ -99,7 +100,8 @@ class TenkiEnvironment(BaseEnvironment):
     Environment kwargs (``--ek key=value``):
 
     - ``image`` / ``snapshot_id``: start the VM from a Tenki image or snapshot
-      instead of the default base, e.g. one with Docker already installed.
+      instead of the default base. ``tenki-harbor prepare`` builds a snapshot
+      with Docker installed; ``TENKI_HARBOR_SNAPSHOT_ID`` sets it by default.
     - ``disk_size_gb``: VM disk; defaults to the task's storage plus room for
       image layers.
     - ``max_duration_sec``: hard lifetime of the VM, so a crashed Harbor run
@@ -119,6 +121,8 @@ class TenkiEnvironment(BaseEnvironment):
     ):
         if image and snapshot_id:
             raise ValueError("Pass at most one of image and snapshot_id.")
+        if not image and not snapshot_id:
+            snapshot_id = os.environ.get(SNAPSHOT_ENV_VAR) or None
         self._tenki_image = image
         self._snapshot_id = snapshot_id
         self._disk_size_gb_override = disk_size_gb

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  # Creates real Tenki VMs, so only nightly and on demand.
+  live:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      TENKI_API_KEY: ${{ secrets.TENKI_API_KEY }}
+      TENKI_HARBOR_SNAPSHOT_ID: ${{ vars.TENKI_HARBOR_SNAPSHOT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - name: Require a Tenki key
+        run: test -n "$TENKI_API_KEY" || { echo "Set the TENKI_API_KEY repository secret."; exit 1; }
+      - run: uv run pytest -m live
+      - name: Harbor smoke test
+        run: uv run harbor run -t hello-world/hello-world -e tenki_harbor:TenkiEnvironment --agent oracle -o jobs
+      - name: Terminate leftover VMs
+        if: always()
+        run: uv run tenki-harbor cleanup

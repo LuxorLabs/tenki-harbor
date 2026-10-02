@@ -49,6 +49,29 @@ Docker inside the VM:
 
 Sessions are tagged `harbor` and carry the Harbor session id in their metadata.
 
+## Faster startup
+
+Bake Docker into a Tenki snapshot once per workspace, and every trial skips the
+Docker install (median setup on Terminal-Bench drops from 28 s to 19 s):
+
+```bash
+uv run tenki-harbor prepare
+export TENKI_HARBOR_SNAPSHOT_ID=<printed snapshot id>
+```
+
+## Terminal-Bench 2.0 results
+
+Harbor's `oracle` agent (each task's reference solution) on Tenki production,
+all 89 tasks, 16 trials at a time: **79 pass**. The other 10 fail for reasons in
+the tasks themselves, not the environment:
+
+| Reason | Tasks |
+|---|---|
+| Pinned apt/CRAN packages no longer published | `qemu-startup`, `qemu-alpine-ssh`, `make-doom-for-mips`, `build-pmars`, `rstan-to-pystan`, `mcmc-sampling-stan` |
+| Oracle also fails on local Docker | `protein-assembly`, `build-cython-ext` |
+| Upstream site returns 403 | `build-pov-ray` |
+| Intermittent gloo hang in the full suite (each test passes on its own) | `torch-tensor-parallelism` |
+
 ## Options
 
 Pass with `--ek key=value` or under `environment.kwargs` in a job config.
@@ -57,7 +80,7 @@ Pass with `--ek key=value` or under `environment.kwargs` in a job config.
 |---|---|---|
 | `max_duration_sec` | `7200` | Hard VM lifetime, so a crashed run can't leak a VM. Capped by the workspace limit. |
 | `disk_size_gb` | task storage + 30 GB, min 50 | VM disk, which also holds the image layers. |
-| `image` / `snapshot_id` | Tenki base image | Start from a Tenki image or snapshot, e.g. one with Docker preinstalled. |
+| `image` / `snapshot_id` | `TENKI_HARBOR_SNAPSHOT_ID`, else the Tenki base image | Start from a Tenki image or snapshot, e.g. one from `tenki-harbor prepare`. |
 | `base_url` | `TENKI_API_ENDPOINT` or `https://api.tenki.cloud` | Tenki API endpoint. |
 
 ## Supported today
@@ -78,8 +101,8 @@ If a Harbor process is killed, its VMs still stop at `max_duration_sec`. To
 end them sooner:
 
 ```bash
-tenki-harbor sessions   # list active Harbor sessions
-tenki-harbor cleanup    # terminate them
+uv run tenki-harbor sessions   # list active Harbor sessions
+uv run tenki-harbor cleanup    # terminate them
 ```
 
 ## Development
