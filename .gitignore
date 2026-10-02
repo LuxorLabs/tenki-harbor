@@ -7,3 +7,4 @@ dist/
 jobs/
 .scratch/
 .env
+.DS_Store
