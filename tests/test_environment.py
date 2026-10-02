@@ -247,3 +247,13 @@ async def test_cancelled_create_keeps_handle_for_cleanup(tmp_path):
 
     await env.stop(delete=True)
     assert FakeSandbox.created[-1].closed
+
+
+async def test_snapshot_comes_from_env_var(tmp_path, monkeypatch):
+    monkeypatch.setenv(tenki_env.SNAPSHOT_ENV_VAR, "snap-1")
+    await started(make_env(tmp_path / "a"))
+    assert FakeSandbox.create_kwargs["snapshot_id"] == "snap-1"
+
+    await started(make_env(tmp_path / "b", env_kwargs={"image": "acme/base"}))
+    assert "snapshot_id" not in FakeSandbox.create_kwargs
+    assert FakeSandbox.create_kwargs["image"] == "acme/base"
