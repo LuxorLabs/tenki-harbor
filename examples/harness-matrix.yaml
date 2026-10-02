@@ -1,0 +1,49 @@
+# One model, several harnesses, a Terminal-Bench 2.0 slice, on Tenki VMs.
+#
+#   export TENKI_API_KEY=tk_...
+#   export OPENAI_BASE_URL=https://your-inference-endpoint/v1
+#   export OPENAI_API_KEY=...
+#   uv run harbor run -c examples/harness-matrix.yaml
+#
+# Replace `your-model-id` below with the model under test. The `openai/` prefix
+# means "OpenAI-compatible API"; each harness reads OPENAI_BASE_URL to reach it.
+jobs_dir: jobs/harness-matrix
+n_attempts: 1
+n_concurrent_trials: 16
+
+environment:
+  import_path: tenki_harbor:TenkiEnvironment
+  delete: true
+
+agents:
+  # Harbor's reference harness (runs on the host, drives the VM over exec).
+  - name: terminus-2
+    model_name: openai/your-model-id
+    env: &endpoint
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+  - name: codex
+    model_name: openai/your-model-id
+    env: *endpoint
+  - name: opencode
+    model_name: openai/your-model-id
+    env: *endpoint
+  - name: mini-swe-agent
+    model_name: openai/your-model-id
+    env: *endpoint
+  - name: qwen-coder
+    model_name: openai/your-model-id
+    env: *endpoint
+  # Claude Code speaks the Anthropic Messages API; enable it if the endpoint
+  # serves that API too.
+  # - name: claude-code
+  #   model_name: anthropic/your-model-id
+  #   env:
+  #     ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL}
+  #     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+
+datasets:
+  - name: terminal-bench
+    version: "2.0"
+    # Start small; drop n_tasks to run all 89 tasks.
+    n_tasks: 20
