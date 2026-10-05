@@ -10,30 +10,32 @@ adds Tenki as a place to run those trials: every trial gets its own Tenki VM.
 ## Quickstart
 
 ```bash
-git clone <this repo> && cd tenki-harbor && uv sync   # not on PyPI yet
+uv tool install harbor \
+  --with "tenki-harbor @ git+https://github.com/LuxorLabs/tenki-harbor" \
+  --with-executables-from tenki-harbor
 export TENKI_API_KEY=tk_...
 
 # Sanity check with the reference solution (no model needed)
-uv run harbor run -t hello-world/hello-world -e tenki_harbor:TenkiEnvironment --agent oracle
+harbor run -t hello-world/hello-world \
+  -e tenki_harbor:TenkiEnvironment --agent oracle
 ```
 
-Run one model across several harnesses on Terminal-Bench 2.0:
+This installs the `harbor` CLI with the Tenki environment, plus the
+`tenki-harbor` command for setup and cleanup. To use it from a Python project
+instead: `uv add harbor "tenki-harbor @ git+https://github.com/LuxorLabs/tenki-harbor"`.
+
+Run any Harbor agent on a benchmark:
 
 ```bash
-export OPENAI_BASE_URL=https://your-inference-endpoint/v1
-export OPENAI_API_KEY=...
-# edit `your-model-id` in the config first
-uv run harbor run -c examples/harness-matrix.yaml
-uv run harbor view jobs/harness-matrix     # pass rates and full agent trajectories
+export ANTHROPIC_API_KEY=sk-ant-...
+harbor run -d terminal-bench@2.0 -e tenki_harbor:TenkiEnvironment \
+  --agent claude-code --model anthropic/claude-opus-4-1 \
+  --n-concurrent 16 -l 10
 ```
 
-Any harness can also be run on its own:
-
-```bash
-uv run harbor run -d terminal-bench@2.0 -e tenki_harbor:TenkiEnvironment \
-  --agent codex --model openai/your-model-id --n-concurrent 16 \
-  --ae OPENAI_BASE_URL=$OPENAI_BASE_URL --ae OPENAI_API_KEY=$OPENAI_API_KEY
-```
+To run one model across several harnesses and get a report of where it breaks,
+use [tenki-harness-evals](https://github.com/LuxorLabs/tenki-harness-evals).
+`examples/harness-matrix.yaml` in this repo is the same idea as a plain Harbor job config.
 
 ## How it works
 
@@ -55,7 +57,7 @@ Bake Docker into a Tenki snapshot once per workspace, and every trial skips the
 Docker install (median setup on Terminal-Bench drops from 28 s to 19 s):
 
 ```bash
-uv run tenki-harbor prepare
+tenki-harbor prepare
 export TENKI_HARBOR_SNAPSHOT_ID=<printed snapshot id>
 ```
 
@@ -101,8 +103,8 @@ If a Harbor process is killed, its VMs still stop at `max_duration_sec`. To
 end them sooner:
 
 ```bash
-uv run tenki-harbor sessions   # list active Harbor sessions
-uv run tenki-harbor cleanup    # terminate them
+tenki-harbor sessions   # list active Harbor sessions
+tenki-harbor cleanup    # terminate them
 ```
 
 ## Development
