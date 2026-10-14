@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 license = "Apache-2.0"
 dependencies = [
     "harbor>=0.23.0,<0.24",
-    "tenki[async]>=1.4.1,<2",
+    "tenki[async]>=1.4.1",
 ]
 
 [dependency-groups]
