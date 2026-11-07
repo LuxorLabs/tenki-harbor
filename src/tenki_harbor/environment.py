@@ -125,9 +125,7 @@ class TenkiEnvironment(BaseEnvironment):
             raise ValueError("Pass at most one of image and snapshot_id.")
         if not image and not snapshot_id:
             snapshot_id = (
-                os.environ.get(LUXORAI_SNAPSHOT_ENV_VAR)
-                or os.environ.get(SNAPSHOT_ENV_VAR)
-                or None
+                os.environ.get(LUXORAI_SNAPSHOT_ENV_VAR) or os.environ.get(SNAPSHOT_ENV_VAR) or None
             )
         self._tenki_image = image
         self._snapshot_id = snapshot_id
@@ -157,8 +155,7 @@ class TenkiEnvironment(BaseEnvironment):
     @override
     def preflight(cls) -> None:
         if not any(
-            os.environ.get(var)
-            for var in ("LUXORAI_API_KEY", "TENKI_API_KEY", "TENKI_AUTH_TOKEN")
+            os.environ.get(var) for var in ("LUXORAI_API_KEY", "TENKI_API_KEY", "TENKI_AUTH_TOKEN")
         ):
             raise SystemExit(
                 "Tenki requires TENKI_API_KEY (or TENKI_AUTH_TOKEN). "
