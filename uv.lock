@@ -2203,16 +2203,16 @@ wheels = [
 
 [[package]]
 name = "tenki"
-version = "1.4.1"
+version = "1.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "grpcio" },
     { name = "protobuf" },
     { name = "websocket-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/59/93036224f9c175af8d7653e618f385ded93f873da5b727755f519ca5b75c/tenki-1.4.1.tar.gz", hash = "sha256:ff361ce1ef7b1676ce8fea519aa63cbce8cb1c1d98fc989d1fde1ff6ef8a79ae", size = 290340, upload-time = "2026-10-01T15:26:19.115Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/58/cfb1b3b704e012fb67cf288a901313a0b4eda8b17d8f5bf1c1006a8d1880/tenki-1.4.2.tar.gz", hash = "sha256:ef9aaeb6a7d989788407eaf1b363c84fba925ffba585e26ef5fddcec137e3048", size = 346482, upload-time = "2026-11-09T16:16:31.57Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/00/f5c5d6b8f75acf6cc2e25128e9418eddadf63571497b6b04e524d5ac09c8/tenki-1.4.1-py3-none-any.whl", hash = "sha256:c48352be3d1c514c7e47aa5264e55723675510ce4a20a025a2dedb1d83dcfada", size = 199117, upload-time = "2026-10-01T15:26:17.517Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/82/d20a6ba61b8b414150fbda72542492c95c1662093c967a67f794534fe62f/tenki-1.4.2-py3-none-any.whl", hash = "sha256:b3faa0589229fa4f0fa47bb2b8d9b779be1f392e685c4a7c66a26ae84b1ee297", size = 226958, upload-time = "2026-11-09T16:16:29.887Z" },
 ]
 
 [package.optional-dependencies]
@@ -2239,7 +2239,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "harbor", specifier = ">=0.23.0,<0.24" },
-    { name = "tenki", extras = ["async"], specifier = ">=1.4.1,<2" },
+    { name = "tenki", extras = ["async"], specifier = ">=1.4.2,<2" },
 ]
 
 [package.metadata.requires-dev]
