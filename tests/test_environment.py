@@ -137,11 +137,21 @@ def test_allowlist_network_is_rejected(tmp_path):
 
 
 def test_preflight_requires_api_key(monkeypatch):
+    monkeypatch.delenv("LUXORAI_AUTH_TOKEN", raising=False)
+    monkeypatch.delenv("LUXORAI_API_KEY", raising=False)
     monkeypatch.delenv("TENKI_API_KEY", raising=False)
     monkeypatch.delenv("TENKI_AUTH_TOKEN", raising=False)
     with pytest.raises(SystemExit, match="TENKI_API_KEY"):
         TenkiEnvironment.preflight()
     monkeypatch.setenv("TENKI_API_KEY", "tk_test")
+    TenkiEnvironment.preflight()
+
+
+@pytest.mark.parametrize("var", ["LUXORAI_API_KEY", "LUXORAI_AUTH_TOKEN"])
+def test_preflight_accepts_luxorai_credentials(monkeypatch, var):
+    for name in ("LUXORAI_AUTH_TOKEN", "LUXORAI_API_KEY", "TENKI_API_KEY", "TENKI_AUTH_TOKEN"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(var, "lx_test")
     TenkiEnvironment.preflight()
 
 
@@ -247,6 +257,13 @@ async def test_cancelled_create_keeps_handle_for_cleanup(tmp_path):
 
     await env.stop(delete=True)
     assert FakeSandbox.created[-1].closed
+
+
+async def test_luxorai_snapshot_env_var_wins(tmp_path, monkeypatch):
+    monkeypatch.setenv(tenki_env.LUXORAI_SNAPSHOT_ENV_VAR, "snap-lx")
+    monkeypatch.setenv(tenki_env.SNAPSHOT_ENV_VAR, "snap-tk")
+    await started(make_env(tmp_path))
+    assert FakeSandbox.create_kwargs["snapshot_id"] == "snap-lx"
 
 
 async def test_snapshot_comes_from_env_var(tmp_path, monkeypatch):

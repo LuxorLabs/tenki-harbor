@@ -38,6 +38,10 @@ from tenki import AsyncSandbox, CommandTimeoutError
 
 CONTAINER = "main"
 SNAPSHOT_ENV_VAR = "TENKI_HARBOR_SNAPSHOT_ID"
+# Read before SNAPSHOT_ENV_VAR.
+LUXORAI_SNAPSHOT_ENV_VAR = "LUXORAI_HARBOR_SNAPSHOT_ID"
+# Same names the tenki SDK resolves credentials from.
+_AUTH_ENV_VARS = ("LUXORAI_AUTH_TOKEN", "LUXORAI_API_KEY", "TENKI_AUTH_TOKEN", "TENKI_API_KEY")
 HARBOR_DIR = "/home/tenki/.harbor"
 XFER_DIR = f"{HARBOR_DIR}/xfer"
 BUILD_DIR = f"{HARBOR_DIR}/build"
@@ -122,7 +126,9 @@ class TenkiEnvironment(BaseEnvironment):
         if image and snapshot_id:
             raise ValueError("Pass at most one of image and snapshot_id.")
         if not image and not snapshot_id:
-            snapshot_id = os.environ.get(SNAPSHOT_ENV_VAR) or None
+            snapshot_id = (
+                os.environ.get(LUXORAI_SNAPSHOT_ENV_VAR) or os.environ.get(SNAPSHOT_ENV_VAR) or None
+            )
         self._tenki_image = image
         self._snapshot_id = snapshot_id
         self._disk_size_gb_override = disk_size_gb
@@ -150,7 +156,7 @@ class TenkiEnvironment(BaseEnvironment):
     @classmethod
     @override
     def preflight(cls) -> None:
-        if not (os.environ.get("TENKI_API_KEY") or os.environ.get("TENKI_AUTH_TOKEN")):
+        if not any(os.environ.get(var) for var in _AUTH_ENV_VARS):
             raise SystemExit(
                 "Tenki requires TENKI_API_KEY (or TENKI_AUTH_TOKEN). "
                 "Create a key at https://tenki.cloud/docs/account/api-keys."
