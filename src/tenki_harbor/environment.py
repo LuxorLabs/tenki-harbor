@@ -40,6 +40,8 @@ CONTAINER = "main"
 SNAPSHOT_ENV_VAR = "TENKI_HARBOR_SNAPSHOT_ID"
 # Read before SNAPSHOT_ENV_VAR.
 LUXORAI_SNAPSHOT_ENV_VAR = "LUXORAI_HARBOR_SNAPSHOT_ID"
+# Same names the tenki SDK resolves credentials from.
+_AUTH_ENV_VARS = ("LUXORAI_AUTH_TOKEN", "LUXORAI_API_KEY", "TENKI_AUTH_TOKEN", "TENKI_API_KEY")
 HARBOR_DIR = "/home/tenki/.harbor"
 XFER_DIR = f"{HARBOR_DIR}/xfer"
 BUILD_DIR = f"{HARBOR_DIR}/build"
@@ -154,9 +156,7 @@ class TenkiEnvironment(BaseEnvironment):
     @classmethod
     @override
     def preflight(cls) -> None:
-        if not any(
-            os.environ.get(var) for var in ("LUXORAI_API_KEY", "TENKI_API_KEY", "TENKI_AUTH_TOKEN")
-        ):
+        if not any(os.environ.get(var) for var in _AUTH_ENV_VARS):
             raise SystemExit(
                 "Tenki requires TENKI_API_KEY (or TENKI_AUTH_TOKEN). "
                 "Create a key at https://tenki.cloud/docs/account/api-keys."

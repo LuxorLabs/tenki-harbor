@@ -137,6 +137,7 @@ def test_allowlist_network_is_rejected(tmp_path):
 
 
 def test_preflight_requires_api_key(monkeypatch):
+    monkeypatch.delenv("LUXORAI_AUTH_TOKEN", raising=False)
     monkeypatch.delenv("LUXORAI_API_KEY", raising=False)
     monkeypatch.delenv("TENKI_API_KEY", raising=False)
     monkeypatch.delenv("TENKI_AUTH_TOKEN", raising=False)
@@ -146,10 +147,11 @@ def test_preflight_requires_api_key(monkeypatch):
     TenkiEnvironment.preflight()
 
 
-def test_preflight_accepts_luxorai_api_key(monkeypatch):
-    monkeypatch.delenv("TENKI_API_KEY", raising=False)
-    monkeypatch.delenv("TENKI_AUTH_TOKEN", raising=False)
-    monkeypatch.setenv("LUXORAI_API_KEY", "lx_test")
+@pytest.mark.parametrize("var", ["LUXORAI_API_KEY", "LUXORAI_AUTH_TOKEN"])
+def test_preflight_accepts_luxorai_credentials(monkeypatch, var):
+    for name in ("LUXORAI_AUTH_TOKEN", "LUXORAI_API_KEY", "TENKI_API_KEY", "TENKI_AUTH_TOKEN"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(var, "lx_test")
     TenkiEnvironment.preflight()
 
 
